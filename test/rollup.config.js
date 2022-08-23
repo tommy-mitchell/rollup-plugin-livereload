@@ -9,6 +9,8 @@ export default {
   },
   plugins: [
     serve({ contentBase: '', port: Math.round(Math.random() * 10000) + 40000 }),
-    live(),
+    live({
+      inject: (snippet) => console.log(`livereload snippet: ${snippet}`),
+    }),
   ],
 }

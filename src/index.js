@@ -6,13 +6,14 @@ const state = (global.PLUGIN_LIVERELOAD = global.PLUGIN_LIVERELOAD || {
   server: null,
 })
 
-export default function livereload(options = { watch: '' }) {
+export default function livereload(options = { watch: '', inject: true }) {
   if (typeof options === 'string') {
     options = {
       watch: options,
     }
   } else {
     options.watch = options.watch || ''
+    options.inject = options.inject || true
   }
 
   // release previous server instance if rollup is reloading configuration
@@ -47,7 +48,14 @@ export default function livereload(options = { watch: '' }) {
         : process.env.CODESANDBOX_SSE
         ? `'//' + (self.location.host.replace(/^([^.]+)-\\d+/,"$1").replace(/^([^.]+)/, "$1-${port}")).split(':')[0] + '/livereload.js?snipver=1&port=443'`
         : `'//' + (self.location.host || 'localhost').split(':')[0] + ':${port}/livereload.js?snipver=1'`
-      return `(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = ${snippetSrc}; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);`
+      const snippet = `(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = ${snippetSrc}; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);`
+      if (options.inject === true) {
+        return snippet
+      }
+      if (typeof options.inject === "function") {
+        options.inject(snippet)
+      }
+      return
     },
     async generateBundle() {
       if (!enabled) {
